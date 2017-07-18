@@ -17,15 +17,17 @@ def compare(fn1, fn2):
 		return f1.read()==f2.read()
 
 def check_output():
-	os.system("(./license_2_fuzz ; ./license_2_fuzz AAAA-Z10N-42-OK) > fuzz_output")
+	os.system("(./license_2 ; ./license_2 AAAA-Z1ON-42-OK) > orig_output")
+	os.system("(./license_2_fuzz ; ./license_2_fuzz AAAA-Z1ON-42-OK) > fuzz_output")
 	return compare("orig_output", "fuzz_output")
 
-
 def check_gdb():
+	os.system("echo disassemble main | gdb license_2 > orig_gdb")
 	os.system("echo disassemble main | gdb license_2_fuzz > fuzz_gdb")
 	return compare("orig_gdb", "fuzz_gdb")
 
 def check_radare():
+	os.system('echo -e "aaa\ns sym.main\npdf" | radare2 license_2 > orig_radare')
 	os.system('echo -e "aaa\ns sym.main\npdf" | radare2 license_2_fuzz > fuzz_radare')
 	return compare("orig_radare", "fuzz_radare")
 
