@@ -1,5 +1,6 @@
 import random
 import os
+import r2pipe
 
 os.system("cp license_2 license_2_fuzz")
 
@@ -20,19 +21,20 @@ def check_output():
 	os.system("(./license_2_fuzz ; ./license_2_fuzz AAAA-Z10N-42-OK) > fuzz_output")
 	return compare("orig_output", "fuzz_output")
 
-
 def check_gdb():
-	os.system("echo disassemble main | gdb license_2_fuzz > fuzz_gdb")
+	os.system("gdb ./license_2_fuzz -batch -ex 'disassemble main' > fuzz_gdb")
 	return compare("orig_gdb", "fuzz_gdb")
 
 def check_radare():
-	os.system('echo -e "aaa\ns sym.main\npdf" | radare2 license_2_fuzz > fuzz_radare')
+	r = r2pipe.open('license_2_fuzz')
+	with open("fuzz_radare", "w") as fr:
+		fr.write(r.cmd('aaa;s sym.main;pdf'))
 	return compare("orig_radare", "fuzz_radare")
 
 while True:
 	copy_binary()
 	if check_output() and not check_gdb() and not check_radare():
 		print "FOUND POSSIBLE FAIL\n\n\n"
-		os.system("tail fuzz_gdb")
-		os.system("tail fuzz_radare")
+		os.system("tail fuzz_gdb fuzz_radare")
 		raw_input()
+		
